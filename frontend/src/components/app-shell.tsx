@@ -25,7 +25,7 @@ export function AppShell({ initialUser, pageTitle, pageDescription, children }: 
       <aside className="portal-sidebar">
         <div className="sidebar-brand">
           <h1>Employee Portal</h1>
-          <p className="small">Sprint 1 Step 5 frontend shell</p>
+          <p className="small">Sprint 2 shell + workflow modules</p>
         </div>
 
         <nav className="sidebar-nav" aria-label="Primary">

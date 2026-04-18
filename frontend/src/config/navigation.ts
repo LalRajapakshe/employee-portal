@@ -1,3 +1,5 @@
+import { PORTAL_ROUTES } from '@/config/routes';
+
 export type PortalNavigationItem = {
   href: string;
   label: string;
@@ -5,20 +7,11 @@ export type PortalNavigationItem = {
   requiredRoles?: string[];
 };
 
-export const PORTAL_NAVIGATION: PortalNavigationItem[] = [
-  {
-    href: '/',
-    label: 'Dashboard',
-    requiredPermissions: ['DASHBOARD.VIEW'],
-  },
-  {
-    href: '/profile',
-    label: 'My Profile',
-    requiredPermissions: ['PROFILE.VIEW'],
-  },
-  {
-    href: '/admin',
-    label: 'Admin',
-    requiredPermissions: ['ADMIN.ACCESS'],
-  },
-];
+export const PORTAL_NAVIGATION: PortalNavigationItem[] = PORTAL_ROUTES
+  .filter((route) => route.showInNavigation !== false)
+  .map((route) => ({
+    href: route.href,
+    label: route.label,
+    requiredPermissions: route.requiredPermissions,
+    requiredRoles: route.requiredRoles,
+  }));

@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation';
 import { getPortalSession } from '@/lib/session';
-import { hasAllPermissions, hasAnyRole } from '@/lib/access-control';
+import { getDefaultAuthorizedRoute, hasAllPermissions, hasAnyPermission, hasAnyRole } from '@/lib/access-control';
 import type { CurrentUser } from '@/types/current-user';
 
 type GuardOptions = {
   requiredPermissions?: string[];
+  requiredAnyPermissions?: string[];
   requiredRoles?: string[];
 };
 
@@ -16,10 +17,16 @@ export async function requirePortalSession(options?: GuardOptions): Promise<Curr
   }
 
   const permissionsOk = hasAllPermissions(session, options?.requiredPermissions);
+  const anyPermissionsOk = hasAnyPermission(session, options?.requiredAnyPermissions);
   const rolesOk = hasAnyRole(session, options?.requiredRoles);
 
-  if (!permissionsOk || !rolesOk) {
-    redirect('/unauthorized');
+  if (!permissionsOk || !anyPermissionsOk || !rolesOk) {
+    const fallbackRoute = getDefaultAuthorizedRoute(session);
+    if (fallbackRoute === '/unauthorized') {
+      redirect('/unauthorized');
+    }
+
+    redirect(fallbackRoute);
   }
 
   return session;

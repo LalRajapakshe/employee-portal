@@ -19,7 +19,14 @@ public sealed class AuditLogService : IAuditLogService
 
     public async Task WriteAsync(AuditLogEntry entry, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Audit event {EventType} by {PerformedBy}: {Details}", entry.EventType, entry.PerformedBy, entry.Details);
+        _logger.LogInformation(
+            "Audit event {EventType} by {PerformedBy} on {RequestPath} ({StatusCode}) corr={CorrelationId}: {Details}",
+            entry.EventType,
+            entry.PerformedBy,
+            entry.RequestPath,
+            entry.StatusCode,
+            entry.CorrelationId,
+            entry.Details);
 
         if (string.IsNullOrWhiteSpace(_options.ConnectionString))
         {
@@ -27,8 +34,30 @@ public sealed class AuditLogService : IAuditLogService
         }
 
         const string sql = @"
-INSERT INTO portal.AuditLogs (EventType, EntityName, EntityId, PerformedBy, Details, IpAddress, UserAgent)
-VALUES (@EventType, @EntityName, @EntityId, @PerformedBy, @Details, @IpAddress, @UserAgent);";
+INSERT INTO portal.AuditLogs (
+    EventType,
+    EntityName,
+    EntityId,
+    PerformedBy,
+    Details,
+    IpAddress,
+    UserAgent,
+    SourceLayer,
+    CorrelationId,
+    RequestPath,
+    StatusCode)
+VALUES (
+    @EventType,
+    @EntityName,
+    @EntityId,
+    @PerformedBy,
+    @Details,
+    @IpAddress,
+    @UserAgent,
+    @SourceLayer,
+    @CorrelationId,
+    @RequestPath,
+    @StatusCode);";
 
         await using var connection = new SqlConnection(_options.ConnectionString);
         await connection.OpenAsync(cancellationToken);
@@ -44,6 +73,10 @@ VALUES (@EventType, @EntityName, @EntityId, @PerformedBy, @Details, @IpAddress, 
         command.Parameters.AddWithValue("@Details", (object?)entry.Details ?? DBNull.Value);
         command.Parameters.AddWithValue("@IpAddress", (object?)entry.IpAddress ?? DBNull.Value);
         command.Parameters.AddWithValue("@UserAgent", (object?)entry.UserAgent ?? DBNull.Value);
+        command.Parameters.AddWithValue("@SourceLayer", entry.SourceLayer);
+        command.Parameters.AddWithValue("@CorrelationId", (object?)entry.CorrelationId ?? DBNull.Value);
+        command.Parameters.AddWithValue("@RequestPath", (object?)entry.RequestPath ?? DBNull.Value);
+        command.Parameters.AddWithValue("@StatusCode", (object?)entry.StatusCode ?? DBNull.Value);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }
@@ -61,7 +94,14 @@ public sealed class ErrorLogService : IErrorLogService
 
     public async Task WriteAsync(ErrorLogEntry entry, CancellationToken cancellationToken = default)
     {
-        _logger.LogError("{SourceLayer} error {ErrorCode}: {ErrorMessage}", entry.SourceLayer, entry.ErrorCode, entry.ErrorMessage);
+        _logger.LogError(
+            "{SourceLayer} error {ErrorCode} on {RequestPath} ({StatusCode}) corr={CorrelationId}: {ErrorMessage}",
+            entry.SourceLayer,
+            entry.ErrorCode,
+            entry.RequestPath,
+            entry.StatusCode,
+            entry.CorrelationId,
+            entry.ErrorMessage);
 
         if (string.IsNullOrWhiteSpace(_options.ConnectionString))
         {
@@ -69,8 +109,28 @@ public sealed class ErrorLogService : IErrorLogService
         }
 
         const string sql = @"
-INSERT INTO portal.ErrorLogs (ErrorCode, ErrorMessage, StackTrace, SourceLayer, CorrelationId)
-VALUES (@ErrorCode, @ErrorMessage, @StackTrace, @SourceLayer, @CorrelationId);";
+INSERT INTO portal.ErrorLogs (
+    ErrorCode,
+    ErrorMessage,
+    StackTrace,
+    SourceLayer,
+    CorrelationId,
+    UserName,
+    RequestPath,
+    IpAddress,
+    UserAgent,
+    StatusCode)
+VALUES (
+    @ErrorCode,
+    @ErrorMessage,
+    @StackTrace,
+    @SourceLayer,
+    @CorrelationId,
+    @UserName,
+    @RequestPath,
+    @IpAddress,
+    @UserAgent,
+    @StatusCode);";
 
         await using var connection = new SqlConnection(_options.ConnectionString);
         await connection.OpenAsync(cancellationToken);
@@ -84,6 +144,11 @@ VALUES (@ErrorCode, @ErrorMessage, @StackTrace, @SourceLayer, @CorrelationId);";
         command.Parameters.AddWithValue("@StackTrace", (object?)entry.StackTrace ?? DBNull.Value);
         command.Parameters.AddWithValue("@SourceLayer", entry.SourceLayer);
         command.Parameters.AddWithValue("@CorrelationId", (object?)entry.CorrelationId ?? DBNull.Value);
+        command.Parameters.AddWithValue("@UserName", (object?)entry.UserName ?? DBNull.Value);
+        command.Parameters.AddWithValue("@RequestPath", (object?)entry.RequestPath ?? DBNull.Value);
+        command.Parameters.AddWithValue("@IpAddress", (object?)entry.IpAddress ?? DBNull.Value);
+        command.Parameters.AddWithValue("@UserAgent", (object?)entry.UserAgent ?? DBNull.Value);
+        command.Parameters.AddWithValue("@StatusCode", (object?)entry.StatusCode ?? DBNull.Value);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }

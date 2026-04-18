@@ -1,45 +1,36 @@
-/*
-Step 3: Payroll employee master read integration contract
---------------------------------------------------------
-Purpose:
-- define a safe read-only contract from Payroll to Employee Portal
-- isolate portal code from direct dependency on payroll base tables
-- provide stable objects for employee profile and future eligibility rules
-
-Instructions:
-1. Replace [PayrollDb] and payroll source table/column names with the actual payroll objects.
-2. Prefer granting SELECT only on the portal_payroll schema views to the portal app user.
-3. Do not grant direct table access to payroll transactional tables from the portal.
-*/
+USE EmployeePortal;
+GO
 
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'portal_payroll')
-    EXEC('CREATE SCHEMA portal_payroll');
+BEGIN
+    EXEC('CREATE SCHEMA portal_payroll AUTHORIZATION dbo');
+END;
 GO
 
 CREATE OR ALTER VIEW portal_payroll.vw_EmployeeMasterRead
 AS
     SELECT
-        e.Id,
+        CAST(e.Id AS nvarchar(50)) AS EmployeeCode,
         e.FullName,
-        d.Id AS DepartmentId,
+        CAST(d.Id AS nvarchar(50)) AS DepartmentCode,
         d.Name AS DepartmentName,
-        g.id AS DesignationId,
+        CAST(g.Id AS nvarchar(50)) AS DesignationCode,
         g.Name AS DesignationName,
         CAST(e.JoinDate AS date) AS JoinDate,
-        ed.JobStatusId,
-        CAST(CASE WHEN ed.JobStatusId <> 3  THEN 1 ELSE 0 END AS bit) AS IsPermanent,
+        CAST(ed.JobStatusId AS nvarchar(50)) AS EmploymentStatus,
+        CAST(CASE WHEN ed.JobStatusId <> 3 THEN 1 ELSE 0 END AS bit) AS IsPermanent,
         e.Email AS OfficialEmail,
-        rs.ReportingManagerEmployeeCode AS ReportingManagerEmployeeCode,
-        re.DirectorEmployeeCode AS DirectorEmployeeCode,
+        CAST(rs.ReportingManagerEmployeeCode AS nvarchar(50)) AS ReportingManagerEmployeeCode,
+        CAST(rs.DirectorEmployeeCode AS nvarchar(50)) AS DirectorEmployeeCode,
         CAST(CASE WHEN ed.JobStatusId <> 3 THEN 1 ELSE 0 END AS bit) AS IsActive
-    FROM [PayrollDB].dbo.HREmployee e
-    inner JOIN [PayrollDB].dbo.HREmpDepartment ed
+    FROM [SlimDB].dbo.HREmployee e
+    INNER JOIN [SlimDB].dbo.HREmpDepartment ed
         ON ed.EmpId = e.Id
-    inner JOIN [PayrollDB].dbo.HRDepartment d
+    INNER JOIN [SlimDB].dbo.HRDepartment d
         ON d.Id = ed.DepartmentId
-    inner JOIN [PayrollDB].dbo.HRDesignation g
+    INNER JOIN [SlimDB].dbo.HRDesignation g
         ON g.Id = ed.DesignationId
-    left join [PayrollDB].dbo.HREmployeeResponseHeads rs
+    LEFT JOIN [SlimDB].dbo.HREmployeeResponseHeads rs
         ON rs.EmpId = e.Id;
 GO
 
@@ -95,9 +86,3 @@ BEGIN
       AND u.IsActive = 1;
 END;
 GO
-
-/* Suggested security pattern
-GRANT SELECT ON OBJECT::portal_payroll.vw_EmployeeMasterRead TO [portal_app_user];
-GRANT EXECUTE ON OBJECT::portal_payroll.usp_GetEmployeeProfileByEmployeeCode TO [portal_app_user];
-GRANT EXECUTE ON OBJECT::portal_payroll.usp_GetEmployeeProfileByUserName TO [portal_app_user];
-*/

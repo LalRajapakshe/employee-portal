@@ -8,7 +8,4 @@
     <ProjectReference Include="..\EmployeePortal.Application\EmployeePortal.Application.csproj" />
     <ProjectReference Include="..\EmployeePortal.Infrastructure\EmployeePortal.Infrastructure.csproj" />
   </ItemGroup>
-  <ItemGroup>
-  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-</ItemGroup>
 </Project>

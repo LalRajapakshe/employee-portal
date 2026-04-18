@@ -12,7 +12,7 @@ public sealed class ExceptionHandlingMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context, IErrorLogService errorLogService)
+    public async Task InvokeAsync(HttpContext context, IErrorLogService errorLogService, ICurrentUserAccessor currentUserAccessor)
     {
         try
         {
@@ -21,6 +21,7 @@ public sealed class ExceptionHandlingMiddleware
         catch (Exception exception)
         {
             var correlationId = context.TraceIdentifier;
+            context.Response.Headers[RequestCorrelationMiddleware.HeaderName] = correlationId;
 
             await errorLogService.WriteAsync(
                 new ErrorLogEntry(
@@ -28,7 +29,12 @@ public sealed class ExceptionHandlingMiddleware
                     ErrorMessage: exception.Message,
                     StackTrace: exception.StackTrace,
                     SourceLayer: "Core Backend Layer",
-                    CorrelationId: correlationId),
+                    CorrelationId: correlationId,
+                    UserName: currentUserAccessor.GetUserName(),
+                    RequestPath: currentUserAccessor.GetPath(),
+                    IpAddress: currentUserAccessor.GetIpAddress(),
+                    UserAgent: currentUserAccessor.GetUserAgent(),
+                    StatusCode: StatusCodes.Status500InternalServerError),
                 context.RequestAborted);
 
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;

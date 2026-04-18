@@ -59,17 +59,45 @@ public sealed class PayrollEmployeeReadRepository : IEmployeeReadRepository
 
     private static EmployeeProfileDto CreateFallbackProfile(string sourceValue, bool isEmployeeCode)
     {
-        var employeeCode = isEmployeeCode ? sourceValue : "EMP001";
-        var name = isEmployeeCode ? "Demo Employee" : sourceValue;
-
-        return new EmployeeProfileDto(
-            EmployeeCode: employeeCode,
-            FullName: name,
-            Department: "Finance",
-            Designation: "Executive",
-            JoinDate: new DateOnly(2024, 1, 15),
-            EmploymentStatus: "Active",
-            IsPermanent: true,
-            OfficialEmail: "employee@example.com");
+        var normalized = sourceValue.Trim();
+        return normalized.ToLowerInvariant() switch
+        {
+            "demo.user" or "emp001" => new EmployeeProfileDto(
+                EmployeeCode: "EMP001",
+                FullName: "Demo Employee",
+                Department: "Finance",
+                Designation: "Executive",
+                JoinDate: new DateOnly(2024, 1, 15),
+                EmploymentStatus: "Active",
+                IsPermanent: true,
+                OfficialEmail: "employee@example.com"),
+            "director.user" or "emp500" => new EmployeeProfileDto(
+                EmployeeCode: "EMP500",
+                FullName: "Director Approver",
+                Department: "Management",
+                Designation: "Director",
+                JoinDate: new DateOnly(2020, 4, 1),
+                EmploymentStatus: "Active",
+                IsPermanent: true,
+                OfficialEmail: "director@example.com"),
+            "hr.admin" or "emp900" => new EmployeeProfileDto(
+                EmployeeCode: "EMP900",
+                FullName: "HR Administrator",
+                Department: "Human Resources",
+                Designation: "HR Admin",
+                JoinDate: new DateOnly(2019, 7, 10),
+                EmploymentStatus: "Active",
+                IsPermanent: true,
+                OfficialEmail: "hr.admin@example.com"),
+            _ => new EmployeeProfileDto(
+                EmployeeCode: isEmployeeCode ? normalized : "EMP001",
+                FullName: isEmployeeCode ? "Demo Employee" : normalized,
+                Department: "Finance",
+                Designation: "Executive",
+                JoinDate: new DateOnly(2024, 1, 15),
+                EmploymentStatus: "Active",
+                IsPermanent: true,
+                OfficialEmail: "employee@example.com")
+        };
     }
 }

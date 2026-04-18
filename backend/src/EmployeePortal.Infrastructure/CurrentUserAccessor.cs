@@ -13,10 +13,33 @@ public sealed class HttpCurrentUserAccessor : ICurrentUserAccessor
     }
 
     public string? GetUserName()
-    {
-        var context = _httpContextAccessor.HttpContext;
+        => _httpContextAccessor.HttpContext?.Request.Headers["X-Portal-User"].FirstOrDefault();
 
-        return context?.Request.Headers["X-Portal-User"].FirstOrDefault()
-            ?? context?.User?.Identity?.Name;
+    public IReadOnlyList<string> GetRoles()
+    {
+        var header = _httpContextAccessor.HttpContext?.Request.Headers["X-Portal-Roles"].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(header))
+        {
+            return Array.Empty<string>();
+        }
+
+        return header
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.ToUpperInvariant())
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
     }
+
+    public string? GetCorrelationId()
+        => _httpContextAccessor.HttpContext?.TraceIdentifier;
+
+    public string? GetIpAddress()
+        => _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+
+    public string? GetUserAgent()
+        => _httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString();
+
+    public string? GetPath()
+        => _httpContextAccessor.HttpContext?.Request.Path.Value;
 }

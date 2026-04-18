@@ -1,45 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { encodePortalSession, PORTAL_SESSION_COOKIE } from '@/lib/session';
+import { callCoreApi } from '@/lib/core-api';
+import { applyPortalSessionCookie } from '@/lib/session';
+import { CORRELATION_ID_HEADER, getOrCreateCorrelationId } from '@/lib/request-correlation';
 import type { CurrentUser } from '@/types/current-user';
 
+type LoginPayload = {
+  success: boolean;
+  data?: CurrentUser;
+  message?: string;
+  correlationId?: string;
+};
+
 export async function POST(request: NextRequest) {
-  const coreApiBaseUrl = process.env.CORE_API_BASE_URL ?? 'http://localhost:5000';
+  const correlationId = getOrCreateCorrelationId(request);
 
   let body: { userName?: string; password?: string };
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ success: false, message: 'Invalid login request.' }, { status: 400 });
+    const response = NextResponse.json({ success: false, message: 'Invalid login request.', correlationId }, { status: 400 });
+    response.headers.set(CORRELATION_ID_HEADER, correlationId);
+    return response;
   }
 
-  try {
-    const response = await fetch(`${coreApiBaseUrl}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userName: body.userName, password: body.password }),
-      cache: 'no-store',
-    });
+  const result = await callCoreApi<LoginPayload>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ userName: body.userName, password: body.password }),
+    headers: {
+      [CORRELATION_ID_HEADER]: correlationId,
+    },
+  });
 
-    const payload = await response.json();
-    if (!response.ok || !payload?.success || !payload?.data) {
-      return NextResponse.json(
-        { success: false, message: payload?.message ?? 'Login failed.' },
-        { status: response.status || 400 },
-      );
-    }
-
-    const user = payload.data as CurrentUser;
-    const result = NextResponse.json({ success: true, data: user });
-    result.cookies.set(PORTAL_SESSION_COOKIE, encodePortalSession(user), {
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
-      secure: false,
-      maxAge: 60 * 60 * 8,
-    });
-
-    return result;
-  } catch {
-    return NextResponse.json({ success: false, message: 'Unable to reach Core Backend Layer.' }, { status: 502 });
+  if (!result.ok) {
+    const response = NextResponse.json(
+      { success: false, message: result.message, correlationId: result.correlationId ?? correlationId },
+      { status: result.status },
+    );
+    response.headers.set(CORRELATION_ID_HEADER, result.correlationId ?? correlationId);
+    return response;
   }
+
+  if (!result.payload.success || !result.payload.data) {
+    const response = NextResponse.json(
+      { success: false, message: result.payload.message ?? 'Login failed.', correlationId: result.correlationId ?? correlationId },
+      { status: 400 },
+    );
+    response.headers.set(CORRELATION_ID_HEADER, result.correlationId ?? correlationId);
+    return response;
+  }
+
+  const response = NextResponse.json({ success: true, data: result.payload.data, correlationId: result.correlationId ?? correlationId });
+  response.headers.set(CORRELATION_ID_HEADER, result.correlationId ?? correlationId);
+  applyPortalSessionCookie(response, result.payload.data);
+  return response;
 }
