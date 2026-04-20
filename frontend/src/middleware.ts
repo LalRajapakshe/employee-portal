@@ -36,5 +36,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/profile/:path*', '/salary-advance/:path*', '/approvals/:path*', '/notifications/:path*', '/admin/:path*', '/test/:path*', '/login'],
+  matcher: ['/', '/profile/:path*', '/salary-advance/:path*', '/approvals/:path*', '/notifications/:path*', '/admin/:path*', '/test/:path*', '/login', '/loans', '/loans/:path*', '/api/loans/:path*'],
 };

@@ -50,6 +50,7 @@ app.MapGet("/api/employees/me", async (
         : Results.Ok(new { success = true, data = profile });
 });
 
+// Salary Advance endpoints
 app.MapGet("/api/salary-advance", async (
     ISalaryAdvanceService salaryAdvanceService,
     CancellationToken cancellationToken) =>
@@ -147,6 +148,136 @@ app.MapGet("/api/notifications", async (
     CancellationToken cancellationToken) =>
 {
     var items = await salaryAdvanceService.GetNotificationsAsync(cancellationToken);
+    return Results.Ok(new { success = true, data = items });
+});
+
+// Loan endpoints
+app.MapGet("/api/loans", async (
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var policy = await loanService.GetPolicyAsync(cancellationToken);
+    var eligibility = await loanService.GetEligibilityAsync(cancellationToken);
+    var items = await loanService.ListMyLoansAsync(cancellationToken);
+    var summary = await loanService.GetDashboardSummaryAsync(cancellationToken);
+
+    return Results.Ok(new
+    {
+        success = true,
+        data = new
+        {
+            policy,
+            eligibility,
+            items,
+            summary
+        }
+    });
+});
+
+app.MapGet("/api/loans/eligibility", async (
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var result = await loanService.GetEligibilityAsync(cancellationToken);
+    return Results.Ok(new { success = true, data = result });
+});
+
+app.MapGet("/api/loans/summary", async (
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var result = await loanService.GetDashboardSummaryAsync(cancellationToken);
+    return Results.Ok(new { success = true, data = result });
+});
+
+app.MapPost("/api/loans", async (
+    LoanCreateRequestDto request,
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var draft = await loanService.CreateDraftAsync(request, cancellationToken);
+    return Results.Ok(new { success = true, data = draft });
+});
+
+app.MapGet("/api/loans/{requestId:guid}", async (
+    Guid requestId,
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var request = await loanService.GetRequestAsync(requestId, cancellationToken);
+    return request is null
+        ? Results.NotFound(new { success = false, message = "Loan request not found." })
+        : Results.Ok(new { success = true, data = request });
+});
+
+app.MapPut("/api/loans/{requestId:guid}", async (
+    Guid requestId,
+    LoanUpdateDraftRequestDto request,
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var updated = await loanService.UpdateDraftAsync(requestId, request, cancellationToken);
+    return updated is null
+        ? Results.NotFound(new { success = false, message = "Loan request not found." })
+        : Results.Ok(new { success = true, data = updated });
+});
+
+app.MapPost("/api/loans/{requestId:guid}/submit", async (
+    Guid requestId,
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var submitted = await loanService.SubmitAsync(requestId, cancellationToken);
+    return submitted is null
+        ? Results.NotFound(new { success = false, message = "Loan request not found." })
+        : Results.Ok(new { success = true, data = submitted });
+});
+
+app.MapPost("/api/loans/{requestId:guid}/actions", async (
+    Guid requestId,
+    LoanApprovalActionRequestDto request,
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var updated = await loanService.ApplyApprovalActionAsync(requestId, request, cancellationToken);
+    return updated is null
+        ? Results.NotFound(new { success = false, message = "Loan request not found." })
+        : Results.Ok(new { success = true, data = updated });
+});
+
+app.MapGet("/api/loans/{requestId:guid}/schedule", async (
+    Guid requestId,
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var schedule = await loanService.GetRepaymentScheduleAsync(requestId, cancellationToken);
+    return Results.Ok(new { success = true, data = schedule });
+});
+
+app.MapGet("/api/loans/{requestId:guid}/print", async (
+    Guid requestId,
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var printData = await loanService.GetPrintDataAsync(requestId, cancellationToken);
+    return printData is null
+        ? Results.NotFound(new { success = false, message = "Loan request not found." })
+        : Results.Ok(new { success = true, data = printData });
+});
+
+app.MapGet("/api/loans/approvals", async (
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var items = await loanService.GetApprovalInboxAsync(cancellationToken);
+    return Results.Ok(new { success = true, data = items });
+});
+
+app.MapGet("/api/loans/notifications", async (
+    ILoanService loanService,
+    CancellationToken cancellationToken) =>
+{
+    var items = await loanService.GetNotificationsAsync(cancellationToken);
     return Results.Ok(new { success = true, data = items });
 });
 

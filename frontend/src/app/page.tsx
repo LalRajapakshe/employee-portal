@@ -13,7 +13,13 @@ export default async function HomePage() {
       pageTitle="Dashboard"
       pageDescription="Sprint 2 introduces the shared workflow engine, notifications, print support, and the Salary Advance module."
     >
+
       <div className="grid grid-3">
+      <div className="card">
+          <h3>My Loans</h3>
+           <p className="small">Create drafts, submit requests, and track payroll handoff readiness.</p>
+          <Link href="/loans">Open module</Link>
+        </div>
         <div className="card">
           <h3>Salary Advance</h3>
           <p className="small">Create drafts, submit requests, and track payroll handoff readiness.</p>

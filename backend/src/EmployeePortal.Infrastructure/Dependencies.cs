@@ -12,6 +12,7 @@ public static class Dependencies
         services.Configure<PayrollReadOptions>(configuration.GetSection(PayrollReadOptions.SectionName));
         services.Configure<PortalAuthOptions>(configuration.GetSection(PortalAuthOptions.SectionName));
         services.Configure<SalaryAdvanceOptions>(configuration.GetSection(SalaryAdvanceOptions.SectionName));
+        services.Configure<LoanOptions>(configuration.GetSection(LoanOptions.SectionName));
 
         services.AddScoped<ICurrentUserAccessor, HttpCurrentUserAccessor>();
         services.AddScoped<IEmployeeReadRepository, PayrollEmployeeReadRepository>();
@@ -21,9 +22,13 @@ public static class Dependencies
         services.AddScoped<IEmployeeProfileService, EmployeeProfileService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
         services.AddScoped<IErrorLogService, ErrorLogService>();
+
         services.AddSingleton<ISalaryAdvanceRepository, SalaryAdvanceRepository>();
         services.AddScoped<IWorkflowEngineService, WorkflowEngineService>();
         services.AddScoped<ISalaryAdvanceService, SalaryAdvanceService>();
+
+        services.AddScoped<ILoanRepository, LoanRepository>();
+        services.AddScoped<ILoanService, LoanService>();
 
         return services;
     }
