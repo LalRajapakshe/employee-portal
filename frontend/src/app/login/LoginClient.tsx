@@ -1,11 +1,15 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 type LoginState = {
   loading: boolean;
   message?: string;
+};
+type BranchOption = {
+  value: number;
+  text: string;
 };
 
 export default function LoginClient() {
@@ -14,6 +18,28 @@ export default function LoginClient() {
   const [state, setState] = useState<LoginState>({ loading: false });
   const [userName, setUserName] = useState('demo.user');
   const [password, setPassword] = useState('Password@123');
+  const [branches, setBranches] = useState<BranchOption[]>([]);
+  const [branchId, setBranchId] = useState<number | ''>('');
+
+  useEffect(() => {
+  const loadBranches = async () => {
+    try {
+      const response = await fetch('/api/auth/branches');
+
+      if (!response.ok) {
+        throw new Error('Failed to load branches');
+      }
+
+      const result = await response.json();
+
+      setBranches(result.data ?? []);
+    } catch (error) {
+      console.error('Failed to load branches:', error);
+    }
+  };
+
+  loadBranches();
+}, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,6 +75,27 @@ export default function LoginClient() {
         </p>
 
         <form onSubmit={onSubmit} style={{ display: 'grid', gap: 16 }}>
+
+           <label>
+                <strong>Branch</strong>
+
+                <select
+                  value={branchId}
+                  onChange={(e) =>
+                    setBranchId(e.target.value ? Number(e.target.value) : '')
+                  }
+                  style={{ width: '100%', padding: 10, marginTop: 6 }}
+                >
+                  <option value="">Select Branch</option>
+
+                  {branches.map((branch) => (
+                    <option key={branch.value} value={branch.value}>
+                      {branch.text}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
           <label>
             <strong>User Name</strong>
             <input
