@@ -40,6 +40,53 @@ app.MapGet("/api/auth/me", async (
         : Results.Ok(new { success = true, data = currentUser });
 });
 
+app.MapGet("/api/auth/branches", async (
+    IAuthUserRepository authUserRepository,
+    CancellationToken cancellationToken) =>
+{
+    var branches = await authUserRepository.GetBranchesAsync(cancellationToken);
+
+    return Results.Ok(new
+    {
+        success = true,
+        data = branches
+    });
+});
+
+app.MapGet("/api/payroll/periods", async (
+    int branchId,
+    IPayrollPeriodRepository payrollPeriodRepository,
+    CancellationToken cancellationToken) =>
+{
+    var periods = await payrollPeriodRepository.GetPeriodsAsync(
+        branchId,
+        cancellationToken);
+
+    return Results.Ok(new
+    {
+        success = true,
+        data = periods
+    });
+});
+
+app.MapGet("/api/payroll/payslip", async (
+    int monthId,
+    int employeeId,
+    IPayslipRepository payslipRepository,
+    CancellationToken cancellationToken) =>
+{
+    var payslip = await payslipRepository.GetPayslipAsync(
+        monthId,
+        employeeId,
+        cancellationToken);
+
+    return Results.Ok(new
+    {
+        success = true,
+        data = payslip
+    });
+});
+
 app.MapGet("/api/employees/me", async (
     IEmployeeProfileService employeeProfileService,
     CancellationToken cancellationToken) =>

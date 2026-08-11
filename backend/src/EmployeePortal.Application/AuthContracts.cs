@@ -53,8 +53,46 @@ public sealed record ErrorLogEntry(
 
 public interface IAuthUserRepository
 {
-    Task<AuthenticatedPortalUser?> FindByUserNameAsync(string userName, CancellationToken cancellationToken = default);
-    Task RecordLastLoginAsync(string userName, CancellationToken cancellationToken = default);
+    Task<AuthenticatedPortalUser?> FindByUserNameAsync(
+        string userName,
+        CancellationToken cancellationToken = default);
+
+    Task RecordLastLoginAsync(
+        string userName,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BranchOption>> GetBranchesAsync(
+        CancellationToken cancellationToken = default);
+}
+
+public sealed record BranchOption(
+    int Value,
+    string Text);
+
+public sealed record PayrollPeriod(
+    int Id,
+    string Description);
+
+public interface IPayrollPeriodRepository
+{
+    Task<IReadOnlyList<PayrollPeriod>> GetPeriodsAsync(
+        int branchId,
+        CancellationToken cancellationToken = default);
+}
+
+public sealed record PayslipLine(
+    int PlineNo,
+    string Narration,
+    decimal Qty,
+    string Earn,
+    decimal Paid);
+
+public interface IPayslipRepository
+{
+    Task<IReadOnlyList<PayslipLine>> GetPayslipAsync(
+        int monthId,
+        int employeeId,
+        CancellationToken cancellationToken = default);
 }
 
 public interface IPasswordVerifier

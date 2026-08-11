@@ -30,6 +30,10 @@ public static class Dependencies
         services.AddScoped<ILoanRepository, LoanRepository>();
         services.AddScoped<ILoanService, LoanService>();
 
+        services.AddScoped<IPayrollPeriodRepository, PayrollPeriodRepository>();
+
+        services.AddScoped<IPayslipRepository, PayslipRepository>();
+
         return services;
     }
 }

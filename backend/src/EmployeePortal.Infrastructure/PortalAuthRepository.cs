@@ -8,18 +8,27 @@ namespace EmployeePortal.Infrastructure;
 public sealed class PortalAuthRepository : IAuthUserRepository
 {
     private readonly PortalAuthOptions _options;
+    private readonly PayrollReadOptions _payrollOptions;
 
-    public PortalAuthRepository(IOptions<PortalAuthOptions> options)
+    public PortalAuthRepository(IOptions<PortalAuthOptions> options, 
+    IOptions<PayrollReadOptions> payrollOptions)
     {
         _options = options.Value;
+         _payrollOptions = payrollOptions.Value;
     }
 
     public async Task<AuthenticatedPortalUser?> FindByUserNameAsync(string userName, CancellationToken cancellationToken = default)
     {
+        Console.WriteLine($"AUTH USER LOOKUP: {userName}");
+        Console.WriteLine($"PORTAL AUTH DB CONFIGURED: {!string.IsNullOrWhiteSpace(_options.ConnectionString)}");
+
         if (string.IsNullOrWhiteSpace(_options.ConnectionString))
         {
+            Console.WriteLine("AUTH MODE: DEMO USERS");
             return FindDemoUser(userName);
         }
+
+        Console.WriteLine("AUTH MODE: DATABASE");
 
         await using var connection = new SqlConnection(_options.ConnectionString);
         await connection.OpenAsync(cancellationToken);
@@ -27,8 +36,12 @@ public sealed class PortalAuthRepository : IAuthUserRepository
         var user = await LoadUserAsync(connection, userName, cancellationToken);
         if (user is null)
         {
+            Console.WriteLine($"AUTH USER NOT FOUND: {userName}");
             return null;
         }
+
+            Console.WriteLine(
+        $"AUTH USER FOUND: {user.UserName}, EmployeeCode={user.EmployeeCode}, IsActive={user.IsActive}");
 
         var roles = await LoadRolesAsync(connection, user.PortalUserId, cancellationToken);
         var permissions = await LoadPermissionsAsync(connection, user.PortalUserId, cancellationToken);
@@ -184,4 +197,54 @@ ORDER BY p.PermissionCode;";
 
         return permissions;
     }
+
+    public async Task<IReadOnlyList<BranchOption>> GetBranchesAsync(
+    CancellationToken cancellationToken = default)
+{
+    //Console.WriteLine(
+    //    $"PAYROLL CONNECTION CONFIGURED: " +
+    //    $"{!string.IsNullOrWhiteSpace(_payrollOptions.ConnectionString)}");
+
+
+
+    if (string.IsNullOrWhiteSpace(_payrollOptions.ConnectionString))
+    {
+        return [];
+    }
+
+    const string sql = @"
+SELECT
+    Id AS Value,
+    Name AS Text
+FROM [HRPayrollType]
+ORDER BY Name;";
+
+    await using var connection = new SqlConnection(_payrollOptions.ConnectionString);
+    await connection.OpenAsync(cancellationToken);
+
+
+
+    await using var command = new SqlCommand(sql, connection)
+    {
+        CommandType = CommandType.Text
+    };
+
+    var branches = new List<BranchOption>();
+    
+    Console.WriteLine($"BRANCH COUNT: {branches.Count}");
+
+    await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+    while (await reader.ReadAsync(cancellationToken))
+    {
+        branches.Add(
+            new BranchOption(
+                Value: reader.GetInt32(reader.GetOrdinal("Value")),
+                Text: reader["Text"]?.ToString() ?? string.Empty
+            )
+        );
+    }
+//Console.WriteLine($"BRANCH COUNT: {branches.Count}");
+    return branches;
+}
 }
