@@ -6,10 +6,13 @@ public sealed record CurrentUserDto(
     string UserName,
     string DisplayName,
     string EmployeeCode,
+    int EmployeeId,
+int BranchId,
     string? Email,
     IReadOnlyList<string> Roles,
     IReadOnlyList<string> Permissions,
     bool IsAuthenticated
+
 );
 
 public sealed record AuthenticatedPortalUser(
@@ -17,6 +20,8 @@ public sealed record AuthenticatedPortalUser(
     string UserName,
     string PasswordHash,
     string EmployeeCode,
+int EmployeeId,
+int BranchId ,   
     string DisplayName,
     string? Email,
     bool IsActive,
@@ -259,6 +264,10 @@ public sealed class AuthenticationService : IAuthenticationService
             UserName: user.UserName,
             DisplayName: user.DisplayName,
             EmployeeCode: user.EmployeeCode,
+
+EmployeeId: user.EmployeeId,
+BranchId: user.BranchId,
+
             Email: user.Email,
             Roles: NormalizeCodes(user.Roles),
             Permissions: NormalizeCodes(user.Permissions),

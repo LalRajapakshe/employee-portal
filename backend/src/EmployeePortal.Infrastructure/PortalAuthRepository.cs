@@ -86,6 +86,8 @@ WHERE UserName = @UserName;";
             UserName: match.UserName,
             PasswordHash: $"{{plain}}{match.Password}",
             EmployeeCode: match.EmployeeCode,
+    EmployeeId: 0,
+    BranchId: 0,    
             DisplayName: string.IsNullOrWhiteSpace(match.DisplayName) ? match.UserName : match.DisplayName,
             Email: match.Email,
             IsActive: match.IsActive,
@@ -101,10 +103,18 @@ SELECT TOP (1)
     pu.UserName,
     pu.PasswordHash,
     pu.EmployeeCode,
+
+    e.id AS EmployeeId,
+    e.PayrollTypeId AS BranchId,   
+
     COALESCE(NULLIF(epp.PortalDisplayName, ''), pu.UserName) AS DisplayName,
     COALESCE(NULLIF(epp.NotificationEmail, ''), pu.Email) AS Email,
     pu.IsActive
 FROM portal.PortalUsers pu
+
+INNER JOIN HREmployee e
+    ON e.Id = CAST(pu.EmployeeCode AS INT)
+
 LEFT JOIN portal.EmployeePortalProfile epp
     ON epp.EmployeeCode = pu.EmployeeCode
 WHERE pu.UserName = @UserName;";
@@ -128,6 +138,10 @@ WHERE pu.UserName = @UserName;";
             UserName: reader["UserName"]?.ToString() ?? string.Empty,
             PasswordHash: passwordHash,
             EmployeeCode: reader["EmployeeCode"]?.ToString() ?? string.Empty,
+
+    EmployeeId: reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+    BranchId: reader.GetInt32(reader.GetOrdinal("BranchId")),
+
             DisplayName: reader["DisplayName"]?.ToString() ?? string.Empty,
             Email: reader["Email"]?.ToString(),
             IsActive: reader["IsActive"] is bool isActive && isActive,

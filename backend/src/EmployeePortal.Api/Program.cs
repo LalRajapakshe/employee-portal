@@ -35,6 +35,13 @@ app.MapGet("/api/auth/me", async (
     CancellationToken cancellationToken) =>
 {
     var currentUser = await authenticationService.GetCurrentUserAsync(cancellationToken);
+
+    Console.WriteLine(
+    $"CURRENT USER: {currentUser?.UserName}, " +
+    $"EmployeeId={currentUser?.EmployeeId}, " +
+    $"BranchId={currentUser?.BranchId}"
+     );
+
     return currentUser is null
         ? Results.Unauthorized()
         : Results.Ok(new { success = true, data = currentUser });
@@ -52,12 +59,21 @@ app.MapGet("/api/auth/branches", async (
         data = branches
     });
 });
-
 app.MapGet("/api/payroll/periods", async (
-    int branchId,
+    IAuthenticationService authenticationService,
     IPayrollPeriodRepository payrollPeriodRepository,
     CancellationToken cancellationToken) =>
 {
+    var currentUser =
+        await authenticationService.GetCurrentUserAsync(cancellationToken);
+
+    if (currentUser is null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var branchId = currentUser.BranchId;
+
     var periods = await payrollPeriodRepository.GetPeriodsAsync(
         branchId,
         cancellationToken);
@@ -71,10 +87,21 @@ app.MapGet("/api/payroll/periods", async (
 
 app.MapGet("/api/payroll/payslip", async (
     int monthId,
-    int employeeId,
+    IAuthenticationService authenticationService,
     IPayslipRepository payslipRepository,
     CancellationToken cancellationToken) =>
 {
+    var currentUser =
+        await authenticationService.GetCurrentUserAsync(cancellationToken);
+
+    if (currentUser is null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var employeeId = currentUser.EmployeeId;
+    var branchId = currentUser.BranchId;
+
     var payslip = await payslipRepository.GetPayslipAsync(
         monthId,
         employeeId,
