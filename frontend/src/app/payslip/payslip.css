@@ -145,6 +145,15 @@
   color: #666;
 }
 
+.company-logo {
+  max-width: 55mm;
+  max-height: 25mm;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
 @media print {
 
   body {

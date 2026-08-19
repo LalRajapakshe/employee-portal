@@ -98,6 +98,10 @@ public interface IPayslipRepository
         int monthId,
         int employeeId,
         CancellationToken cancellationToken = default);
+
+        Task<byte[]?> GetBranchLogoAsync(
+    int branchId,
+    CancellationToken cancellationToken = default);
 }
 
 public interface IPasswordVerifier

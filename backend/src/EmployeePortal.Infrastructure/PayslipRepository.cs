@@ -80,4 +80,37 @@ public sealed class PayslipRepository : IPayslipRepository
 
         return lines;
     }
+
+public async Task<byte[]?> GetBranchLogoAsync(
+    int branchId,
+    CancellationToken cancellationToken = default)
+{
+    const string sql = @"
+        SELECT Logo
+        FROM HRPayrollType
+        WHERE Id = @BranchId;";
+
+    await using var connection =
+        new SqlConnection(_options.ConnectionString);
+
+    await connection.OpenAsync(cancellationToken);
+
+    await using var command = new SqlCommand(sql, connection)
+    {
+        CommandType = CommandType.Text
+    };
+
+    command.Parameters.AddWithValue("@BranchId", branchId);
+
+    var result =
+        await command.ExecuteScalarAsync(cancellationToken);
+
+    if (result is null || result == DBNull.Value)
+    {
+        return null;
+    }
+
+    return (byte[])result;
+}
+
 }

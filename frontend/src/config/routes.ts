@@ -11,6 +11,7 @@ export type PortalRouteDefinition = {
 export const PORTAL_ROUTES: PortalRouteDefinition[] = [
   { href: '/', label: 'Dashboard', requiredPermissions: [PERMISSIONS.DASHBOARD_VIEW], showInNavigation: true },
   { href: '/profile', label: 'My Profile', requiredPermissions: [PERMISSIONS.PROFILE_VIEW], showInNavigation: true },
+  { href: '/payslip', label: 'Payslip', requiredPermissions: [], showInNavigation: true },
 
   { href: '/salary-advance', label: 'Salary Advances', requiredPermissions: [PERMISSIONS.SALARY_ADVANCE_VIEW_SELF], showInNavigation: true },
   { href: '/salary-advance/new', label: 'New Salary Advance', requiredPermissions: [PERMISSIONS.SALARY_ADVANCE_CREATE], showInNavigation: false },

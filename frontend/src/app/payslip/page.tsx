@@ -25,12 +25,17 @@ type PayslipLine = {
   paid: number;
 };
 
+type CompanyInfo = {
+  logo: string | null;
+};
+
 export default function PayslipPage() {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [periods, setPeriods] = useState<PayrollPeriod[]>([]);
   const [selectedMonthId, setSelectedMonthId] = useState('');
 
   const [payslip, setPayslip] = useState<PayslipLine[]>([]);
+  const [company, setCompany] = useState<CompanyInfo | null>(null);
 
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingPeriods, setLoadingPeriods] = useState(false);
@@ -141,6 +146,7 @@ export default function PayslipPage() {
       }
 
       setPayslip(result.data ?? []);
+      setCompany(result.company ?? null);
     } catch (error) {
       setMessage(
         error instanceof Error
@@ -236,7 +242,10 @@ export default function PayslipPage() {
         </div>
 
               {payslip.length > 0 && (
-          <PayslipPreview rows={payslip} />
+          <PayslipPreview
+            rows={payslip}
+             company={company}
+          />
         )}
 
       </div>

@@ -8,8 +8,13 @@ type PayslipRow = {
   paid: number;
 };
 
+type CompanyInfo = {
+  logo: string | null;
+};
+
 type PayslipPreviewProps = {
   rows: PayslipRow[];
+  company: CompanyInfo | null;
 };
 
 const clean = (value: string | number | null | undefined) => {
@@ -66,6 +71,7 @@ const isEmployeeInfo = (narration: string) => {
 
 export default function PayslipPreview({
   rows,
+  company,
 }: PayslipPreviewProps) {
   const payrollPeriod =
     rows.find(
@@ -124,9 +130,17 @@ export default function PayslipPreview({
 
           <div className="payslip-logo">
             {/* Company logo will be placed here */}
-            <div className="logo-placeholder">
-              COMPANY LOGO
-            </div>
+                {company?.logo ? (
+                  <img
+                    src={company.logo}
+                    alt="Company Logo"
+                    className="company-logo"
+                  />
+                ) : (
+                  <div className="logo-placeholder">
+                    COMPANY LOGO
+                  </div>
+                )}
           </div>
 
           <div className="payslip-title">
@@ -282,9 +296,15 @@ export default function PayslipPreview({
         </table>
 
         <footer className="payslip-footer">
-          <span>
-            This is a system generated payslip.
-          </span>
+            <div className="payslip-print-notice">
+            <p>
+              This is an electronically generated pay slip.
+            </p>
+            <p>
+              Confidentiality notice: This document contains private personal data.
+              If received in error, please notify HR immediately.
+            </p>
+            </div>
         </footer>
 
       </div>

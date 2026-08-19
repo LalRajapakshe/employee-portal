@@ -46,16 +46,23 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const result = await callCoreApi(
-    `/api/payroll/payslip?monthId=${encodeURIComponent(monthId)}`,
-    {
-      method: 'GET',
-      headers: buildCoreSessionHeaders(
-        session,
-        correlationId
-      ),
-    }
-  );
+type PayslipPayload = {
+  success: boolean;
+  data?: unknown[];
+  message?: string;
+  correlationId?: string;
+};
+
+const result = await callCoreApi<PayslipPayload>(
+  `/api/payroll/payslip?monthId=${encodeURIComponent(monthId)}`,
+  {
+    method: 'GET',
+    headers: buildCoreSessionHeaders(
+      session,
+      correlationId
+    ),
+  }
+);
 
   if (!result.ok) {
     const response = NextResponse.json(

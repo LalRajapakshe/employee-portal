@@ -107,11 +107,28 @@ app.MapGet("/api/payroll/payslip", async (
         employeeId,
         cancellationToken);
 
-    return Results.Ok(new
+    var logoBytes =
+    await payslipRepository.GetBranchLogoAsync(
+        branchId,
+        cancellationToken);
+
+    string? logo = null;
+
+    if (logoBytes is { Length: > 0 })
     {
-        success = true,
-        data = payslip
-    });
+        logo = $"data:image/png;base64,{Convert.ToBase64String(logoBytes)}";
+    }
+
+return Results.Ok(new
+{
+    success = true,
+    data = payslip,
+    company = new
+    {
+        logo
+    }
+});
+
 });
 
 app.MapGet("/api/employees/me", async (
