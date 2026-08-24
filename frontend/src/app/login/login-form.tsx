@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '@/lib/client-api';
 
 type LoginState = {
   loading: boolean;
@@ -23,7 +24,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
     setState({ loading: true });
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userName, password }),

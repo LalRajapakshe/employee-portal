@@ -16,6 +16,13 @@ function isPublicPath(pathname: string): boolean {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+console.log('[MIDDLEWARE]', {
+  pathname,
+  hasSession: Boolean(request.cookies.get(PORTAL_SESSION_COOKIE)?.value),
+  method: request.method,
+});
+
   const hasSession = Boolean(request.cookies.get(PORTAL_SESSION_COOKIE)?.value);
 
   if (pathname === '/login' && hasSession) {

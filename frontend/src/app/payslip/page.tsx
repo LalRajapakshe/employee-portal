@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 
 import PayslipPreview from './PayslipPreview';
+import { apiUrl } from '@/lib/client-api';
+
 // @ts-ignore: Allow side-effect CSS import where no type declarations are present
 import './payslip.css';
 
@@ -50,7 +52,7 @@ export default function PayslipPage() {
   useEffect(() => {
     async function loadCurrentUser() {
       try {
-        const response = await fetch('/api/auth/me');
+       const response = await fetch(apiUrl('/api/auth/me'));
 
         if (!response.ok) {
           throw new Error('Unable to get current user.');
@@ -89,7 +91,7 @@ export default function PayslipPage() {
         setLoadingPeriods(true);
         setMessage('');
 
-        const response = await fetch('/api/payroll/periods');
+       const response = await fetch(apiUrl('/api/payroll/periods'));
 
         if (!response.ok) {
           throw new Error('Unable to load payroll periods.');
@@ -132,7 +134,7 @@ export default function PayslipPage() {
       setPayslip([]);
 
       const response = await fetch(
-        `/api/payroll/payslip?monthId=${selectedMonthId}`
+        apiUrl(`/api/payroll/payslip?monthId=${selectedMonthId}`)
       );
 
       if (!response.ok) {

@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { apiUrl } from '@/lib/client-api';
 
 type LoginState = {
   loading: boolean;
@@ -24,8 +25,7 @@ export default function LoginClient() {
   useEffect(() => {
   const loadBranches = async () => {
     try {
-      const response = await fetch('/api/auth/branches');
-
+      const response = await fetch(apiUrl('/api/auth/branches'))
       if (!response.ok) {
         throw new Error('Failed to load branches');
       }
@@ -46,10 +46,14 @@ export default function LoginClient() {
     setState({ loading: true });
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userName, password }),
+       body: JSON.stringify({
+                  userName,
+                  password,
+                  branchId,
+                }),
       });
 
       const payload = await response.json();

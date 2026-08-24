@@ -66,7 +66,7 @@ export function applyPortalSessionCookie(response: NextResponse, user: CurrentUs
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.COOKIE_SECURE === 'true',
     maxAge: 60 * 60 * 8,
   });
 }
@@ -76,7 +76,7 @@ export function clearPortalSessionCookie(response: NextResponse) {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.COOKIE_SECURE === 'true',
     maxAge: 0,
     expires: new Date(0),
   });

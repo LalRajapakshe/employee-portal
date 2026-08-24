@@ -14,7 +14,11 @@ type LoginPayload = {
 export async function POST(request: NextRequest) {
   const correlationId = getOrCreateCorrelationId(request);
 
-  let body: { userName?: string; password?: string };
+ let body: {
+  userName?: string;
+  password?: string;
+  branchId?: number;
+            };
   try {
     body = await request.json();
   } catch {
@@ -25,7 +29,11 @@ export async function POST(request: NextRequest) {
 
   const result = await callCoreApi<LoginPayload>('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ userName: body.userName, password: body.password }),
+    body: JSON.stringify({
+  userName: body.userName,
+  password: body.password,
+  branchId: body.branchId,
+                        }),
     headers: {
       [CORRELATION_ID_HEADER]: correlationId,
     },
